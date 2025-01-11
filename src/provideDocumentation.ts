@@ -21,7 +21,14 @@ const wrapInScaffold = (htmlContent: string): string => (
 );
 
 export default async (): Promise<string> => {
-  const directory = dirname(fileURLToPath(import.meta.url));
+  let directory: string;
+  // When we're in the test environment, we don't have import.meta available; on regular
+  // environments though, __dirname is unavailable.
+  if (typeof __dirname === 'undefined') {
+    directory = dirname(fileURLToPath(import.meta.url));
+  } else {
+    directory = __dirname;
+  }
   const content = readFileSync(join(directory, '../docs/API.md'), 'utf8');
   const output = marked.parse(content);
   const resolvedOutput = await Promise.resolve(output);

@@ -9,6 +9,9 @@ const config = {
     // jest when running tests.
     '^(\\./.*)\\.js$': '$1',
   },
+  globals: {
+    tsconfig: 'tsconfig.json',
+  },
 };
 
 export default config;
