@@ -1,16 +1,22 @@
 import path from 'path';
 import { PassThrough } from 'node:stream';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import convertVideo from './convertVideo';
+
+const currentDirectory = dirname(fileURLToPath(import.meta.url));
 
 const generateFFmpegArguments = (): string[] => (
   [
-    '-i', path.join(__dirname, '../media/test.mp4'),
+    '-i', path.join(currentDirectory, '../media/test.mp4'),
     // -f and --movflags are needed when we pipe the output
     '-f', 'mp4',
     '-movflags', '+frag_keyframe+empty_moov',
     '-', // Write to stdout
   ]
 );
+
+// TODO: Input file that is not a video
 
 test('returns a promise', async ():Promise<void> => {
   // Without valid arguments, FFmpeg will fail
@@ -19,10 +25,8 @@ test('returns a promise', async ():Promise<void> => {
   const { cancel, stream } = await promise;
   // Always consume the stream or it will remain open
   stream.on('data', ():void => {});
-  cancel();
-  // Wait until everything was killed
-  await new Promise<void>((resolve): void => { setTimeout(resolve, 1000); });
-});
+  await cancel();
+}, 20000);
 
 test('resolves with the expected params', async (): Promise<void> => {
   const ffmpegArguments = generateFFmpegArguments();
@@ -36,15 +40,14 @@ test('resolves with the expected params', async (): Promise<void> => {
   // We must consume the streams so that they are drained when the tests end
   stream.on('data', ():void => {});
   expect(typeof cancel).toBe('function');
-  cancel();
-  // Wait a bit until process is killed and logs have been written; we can not log to after
-  // a test has finished running.
-  await new Promise<void>((resolve): void => { setTimeout(resolve, 1000); });
-});
+  const cancelPromise = cancel();
+  expect(cancelPromise).toBeInstanceOf(Promise);
+  await cancelPromise;
+}, 20000);
 
 test('rejects with an invalid source', async (): Promise<void> => {
   const ffmpegArguments = [
-    '-i', path.join(__dirname, '../media/tes.mp4'),
+    '-i', path.join(currentDirectory, '../media/tes.mp4'),
     '-f', 'mp4',
     '-movflags', '+frag_keyframe+empty_moov',
     '-', // Write to stdout

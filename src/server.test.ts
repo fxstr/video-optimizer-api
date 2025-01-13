@@ -51,7 +51,27 @@ test('works with valid arguments', (done): void => {
       done();
     })
     .catch((error: unknown): void => {
+      // eslint-disable-next-line no-console
       console.error(error);
       throw error;
     });
 }, 20000);
+
+test('fails on missing source', async (): Promise<void> => {
+  const app = createServer();
+
+  // Whatev, createServer or app do not return a Promise.
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  const response = await request(app)
+    .get('/convert')
+    .expect(400);
+  expect(response.text.includes('"source"')).toBe(true);
+});
+
+test('provides docs', async (): Promise<void> => {
+  const app = createServer();
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  await request(app)
+    .get('/')
+    .expect(200);
+});

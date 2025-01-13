@@ -44,7 +44,8 @@ Example: `format=av1`
 
 Optional. Resizes the video. Currently, cropping is not supported, therefore you may only provide a value for height **or** width.
 
-Format: `{width?}/{height?}` where height **or** width can be provided.
+Format: `{width?}/{height?}` where height **or** width can be provided, both must be even integers
+(due to limitations of the underlying library).
 
 Examples:
 - `size=720/` for a width of 720px.
@@ -54,12 +55,30 @@ Examples:
 
 Optional. Trims the video. Times must be provided in the format `hh:mm:ss.sss` (where `sss` are milliseconds).
 
-Format: `{from?)/{to?}`.
+Format: `{from?)/{to?}`, `from`and `to` in the exact format `hh:mm:ss.sss`.
 
 Examples: 
 - `trim=00:00:01.500` to cut of the first 1.5 seconds.
 - `trim=/00:00:04.200` to discard everything after 4.2 seconds.
 - `trim=00:00:01.200/00:01:00.000` keep the segment between 1.2s and 60s.
+
+#### FPS
+
+Optional. Sets the output framerate. When not set, uses the original vide's framerate. If provided,
+must be a number.
+
+Examples: 
+- `fps=25`
+- `fps=29.97`
+
+#### Quality
+
+Optional. Sets the output quality. If provided, must be a number between 1 and 100. 100 is the
+best imaage/video quality, but the biggest file size. To ffmpeg's default values.
+
+Examples: 
+- `quality=90`
+
 
 ## Upcoming Features
 - [ ] Audio support (currently, all audio is being removed)

@@ -3,7 +3,26 @@ import { PassThrough } from 'node:stream';
 import convertTimeToMs from './convertTimeToMs.js';
 import QueryParameterError from './QueryParameterError.js';
 
-type ReturnPromiseValue = { stream: PassThrough, cancel: () => void };
+type ReturnPromiseValue = { stream: PassThrough, cancel: () => Promise<void> };
+
+/**
+ * If promise has not yet been fulfilled, reject it with the error provided; else call the error
+ * callback function with it.
+ */
+const returnError = ({
+  reject,
+  promiseFulfilled,
+  errorCallback,
+  error,
+}: {
+  reject: (reason: Error) => void,
+  promiseFulfilled: boolean,
+  errorCallback: (error: Error) => void,
+  error: Error,
+}): void => {
+  if (!promiseFulfilled) reject(error);
+  else errorCallback(error);
+};
 
 /**
  * Converts a video with FFmpeg.
@@ -23,24 +42,35 @@ export default ({
   ffmpegArguments?: string[],
   errorCallback?: (error: Error) => void,
 } = {}): Promise<ReturnPromiseValue> => {
-  let resolve: (value: { stream: PassThrough, cancel: () => void }) => void;
+  let resolve: (value: { stream: PassThrough, cancel: () => Promise<void> }) => void;
   let reject: (reason: Error) => void;
-  // Prevent multiple fulf
+
+  // Things happen highly asynchronously here. As soon as the promise is fulfilled, use
+  // errorCallback (instead of a rejection) in case of an error. To do so, we must know if the
+  // promise is still pending.
   let promiseFulfilled = false;
 
+  // Main promise to return
   const promise = new Promise<ReturnPromiseValue>((resolveFunction, rejectFunction): void => {
     resolve = resolveFunction;
     reject = rejectFunction;
   });
 
   const startTime = performance.now();
-  // Use pure ffmpeg command; if we'd use ffmpeg-static or similar, the static version  might not
+
+  // Use pure ffmpeg command; if we'd use ffmpeg-static or similar, the static version (which is
+  // precompiled for easy installation that we don't need because we got Docker) might not
   // be as optimized as it should/could be.
   const ffmpeg = spawn('ffmpeg', ffmpegArguments);
 
   ffmpeg.on('error', (error: Error): void => {
-    reject(error);
-    errorCallback(error);
+    returnError({
+      reject,
+      promiseFulfilled,
+      error,
+      errorCallback,
+    });
+    promiseFulfilled = true;
   });
 
   let duration: number | undefined;
@@ -92,20 +122,32 @@ export default ({
     // If an error happens *after* the first chunk of data was received, the promise is already
     // resolved. In that case use errorCallback, else reject.
     if (isError) {
-      const method = promiseFulfilled ? errorCallback : reject;
       const error = fileNotFound
         ? new QueryParameterError('The URL you passed as source could not be accessed.')
         // TODO: We should not expose our internal error messages and logic
         : new Error(`FFmpeg process exited with code ${code?.toString() ?? ''}:\n ${errorMessage}`);
-      method(error);
+      returnError({
+        reject,
+        promiseFulfilled,
+        error,
+        errorCallback,
+      });
+      promiseFulfilled = true;
       console.log('Error 🚨: code %d, message %s', code, errorMessage);
-      return;
     }
 
     console.log('Done ✨');
   });
 
-  const cancel = ffmpeg.kill.bind(ffmpeg);
+  // Provide a kill method to make sure the ffmpeg process ends when a request is terminated.
+  // Call a callback function when the process exits to make sure from the outside that the process
+  // is dead before we continue e.g. to the next test.
+  const cancel = (): Promise<void> => {
+    ffmpeg.kill();
+    return new Promise((resolveKill): void => {
+      ffmpeg.on('exit', resolveKill);
+    });
+  };
 
   /**
    * Wait until first parsed data is received, only then resolve the promise. Before that, we don't
