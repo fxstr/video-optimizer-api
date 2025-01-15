@@ -40,16 +40,20 @@ Optional; defaults to `h264`. Valid values are currently
 
 Example: `format=av1`
 
-#### Size
+#### Size (includes Cropping)
 
-Optional. Resizes the video. Currently, cropping is not supported, therefore you may only provide a value for height **or** width.
+Optional. Resizes the video and crops it, if necessary.
 
-Format: `{width?}/{height?}` where height **or** width can be provided, both must be even integers
-(due to limitations of the underlying library).
+Format: `{width?}/{height?}` where height or width or both can be provided. `width` and `height`
+must be **even** integers (due to limitations of the underlying library). 
+
+If you provide both `width` **and** `height`, the video will be cropped around the center to fit the
+dimensions.
 
 Examples:
 - `size=720/` for a width of 720px.
 - `size=/480` for a height of 480px.
+- `size=320/720` for a portrait video with a width of 320px and a height of 720px.
 
 #### Trim
 
@@ -64,14 +68,14 @@ Examples:
 
 #### FPS
 
-Optional. Sets the output framerate. When not set, uses the original vide's framerate. If provided,
+Optional. Sets the output framerate. When not set, uses the original video's framerate. If provided,
 must be a number.
 
 Examples: 
 - `fps=25`
 - `fps=29.97`
 
-#### Quality
+#### Quality (TBD, not yet implemented)
 
 Optional. Sets the output quality. If provided, must be a number between 1 and 100. 100 is the
 best imaage/video quality, but the biggest file size. To ffmpeg's default values.
@@ -86,7 +90,7 @@ Examples:
 - [ ] Faster encoding for longer videos (as we split up a longer video into chunks and distribute the encoding of single chunks across multiple servers)
 - [ ] Support for more codecs
 - [ ] Use and propagate the cache headers from the original video
-- [ ] Support for cropping
+- [x] Support for cropping
 - [ ] Support for different quality encoding
 - [ ] And, maybe, adaptive streaming.
 
