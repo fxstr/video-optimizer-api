@@ -51,6 +51,7 @@ export default (query: ParsedQs): NormalizedParameters => {
     format: null,
     fps: null,
     quality: null,
+    keyframeInterval: null,
   };
 
   // Source
@@ -88,7 +89,7 @@ export default (query: ParsedQs): NormalizedParameters => {
   const validFormats = ['h264', 'av1', 'jpg'];
   const format = getValueAsString({ value: query.format, name: 'format' });
   if (format && !validFormats.includes(format)) {
-    throw new QueryParameterError(`GET parameter "format" must be one of ${validFormats.join(', ')}, is ${format} instead.`);
+    throw new QueryParameterError(`GET parameter "format" must be one of ${validFormats.map((format) => `"${format}"`).join(', ')}; is ${format} instead.`);
   }
   if (format) normalizedParameters.format = format;
 
@@ -98,7 +99,25 @@ export default (query: ParsedQs): NormalizedParameters => {
 
   // Quality
   const quality = getValueAsString({ value: query.quality, name: 'quality' });
-  if (quality) normalizedParameters.quality = Math.round(ensureNumber(quality, 'quality'));
+  if (quality) {
+    const normalizedQuality = Math.round(ensureNumber(quality, 'quality')); 
+    if (normalizedQuality < 0 || normalizedQuality > 100) {
+      throw new QueryParameterError(`GET parameter "quality" must be a number between 0 and 100; is ${quality} instead.`);
+    }
+    normalizedParameters.quality = normalizedQuality;
+  }
+
+  // Keyframe interval
+  const keyframe = getValueAsString({ value: query.keyframe, name: 'keyframe' });
+  if (keyframe) {
+    const normalizedKeyframe = Math.round(ensureNumber(keyframe, 'keyframe'));
+    if (normalizedKeyframe < 0) {
+      throw new QueryParameterError(`GET parameter "keyframe" must be a positive integer; is ${keyframe} instead.`);
+    }
+    normalizedParameters.keyframeInterval = normalizedKeyframe;
+  }
+
+  console.log('Normalized parameters are %o', normalizedParameters);
 
   return normalizedParameters;
 };

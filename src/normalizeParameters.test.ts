@@ -112,6 +112,13 @@ describe('quality', (): void => {
     expect((): NormalizedParameters => (
       normalizeParameters({ ...createDefaultParameters(), quality: 'abc' })
     )).toThrow('quality');
+    // Out of bounds
+    expect((): NormalizedParameters => (
+      normalizeParameters({ ...createDefaultParameters(), quality: '-1' })
+    )).toThrow('quality');
+    expect((): NormalizedParameters => (
+      normalizeParameters({ ...createDefaultParameters(), quality: '101' })
+    )).toThrow('quality');
   });
   test('extracts quality', (): void => {
     const { quality } = normalizeParameters({ ...createDefaultParameters(), quality: '99' });
@@ -120,5 +127,25 @@ describe('quality', (): void => {
   test('rounds quality', (): void => {
     const { quality } = normalizeParameters({ ...createDefaultParameters(), quality: '99.2' });
     expect(quality).toBe(99);
+  });
+});
+
+describe('keyframes', (): void => {
+  test('throws on invalid keyframe', (): void => {
+    expect((): NormalizedParameters => (
+      normalizeParameters({ ...createDefaultParameters(), keyframe: 'abc' })
+    )).toThrow('keyframe');
+    // Out of bounds
+    expect((): NormalizedParameters => (
+      normalizeParameters({ ...createDefaultParameters(), keyframe: '-1' })
+    )).toThrow('keyframe');
+  });
+  test('extracts keyframe', (): void => {
+    const { keyframeInterval } = normalizeParameters({ ...createDefaultParameters(), keyframe: '99' });
+    expect(keyframeInterval).toBe(99);
+  });
+  test('rounds quality', (): void => {
+    const { keyframeInterval } = normalizeParameters({ ...createDefaultParameters(), keyframe: '99.2' });
+    expect(keyframeInterval).toBe(99);
   });
 });

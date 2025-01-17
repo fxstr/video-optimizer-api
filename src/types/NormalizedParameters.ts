@@ -7,4 +7,5 @@ export type NormalizedParameters = {
   format: string | null;
   fps: number | null;
   quality: number | null;
+  keyframeInterval: number | null,
 };

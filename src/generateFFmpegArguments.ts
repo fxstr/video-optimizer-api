@@ -1,5 +1,6 @@
 import QueryParameterError from './QueryParameterError.js';
 import { NormalizedParameters } from './types/NormalizedParameters.js';
+import mapQuality from './mapQuality.js';
 
 interface ReturnProperties {
   ffmpegArguments: string[],
@@ -54,6 +55,10 @@ export default (normalizedParameters: NormalizedParameters): ReturnProperties =>
     ffmpegArguments.push('-c:v', 'libx264');
     ffmpegArguments.push('-preset', 'ultrafast');
     ffmpegArguments.push('-f', 'mp4');
+    if (normalizedParameters.quality) {
+      const adjustedQuality = mapQuality([0, 100], [51, 0], normalizedParameters.quality);
+      ffmpegArguments.push('-crf', Math.round(adjustedQuality).toString());
+    }
     ffmpegArguments.push('-movflags', 'frag_keyframe+empty_moov');
     fileType = 'mp4';
   } else if (format === 'av1') {
@@ -61,6 +66,10 @@ export default (normalizedParameters: NormalizedParameters): ReturnProperties =>
     ffmpegArguments.push('-c:v', 'libsvtav1');
     // TODO: Use optimized converter based on hardware
     // ffmpegArguments.push('-c:v', 'librav1e'); for Nvidia or stuff
+    if (normalizedParameters.quality) {
+      const adjustedQuality = mapQuality([0, 100], [63, 0], normalizedParameters.quality);
+      ffmpegArguments.push('-crf', Math.round(adjustedQuality).toString());
+    }
     ffmpegArguments.push('-f', 'mp4');
     ffmpegArguments.push('-movflags', 'frag_keyframe+empty_moov');
     fileType = 'mp4';
@@ -68,13 +77,23 @@ export default (normalizedParameters: NormalizedParameters): ReturnProperties =>
     ffmpegArguments.push('-vframes', '1');
     ffmpegArguments.push('-f', 'image2');
     ffmpegArguments.push('-vcodec', 'mjpeg');
+    if (normalizedParameters.quality) {
+      const adjustedQuality = mapQuality([0, 100], [31, 1], normalizedParameters.quality);
+      ffmpegArguments.push('-q:v', Math.round(adjustedQuality).toString());
+    }
     fileType = 'jpg';
+  }
+
+  if (normalizedParameters.keyframeInterval) {
+    ffmpegArguments.push('-g', normalizedParameters.keyframeInterval.toString());
   }
 
   // Make things verbose to simplify debugging (also on live data)
   ffmpegArguments.push('-v', 'verbose');
   // Make sure output is streamed to stdout
   ffmpegArguments.push('-');
+
+  console.log('ffmpegArguments are %o', ffmpegArguments);
 
   return {
     ffmpegArguments,

@@ -19,6 +19,10 @@ Docker:
 
 `npm test` or `npm run test:watch`
 
+To test a single file: `npm test:watch -- path/to-file.ts`. 
+
+To run a single test: `npm test:watch -t "name of the test"`.
+
 ## API
 Tendenz: Längere Params, dafür wenigere und Infos via Values 
 Params ohne Alias, wegen Caching

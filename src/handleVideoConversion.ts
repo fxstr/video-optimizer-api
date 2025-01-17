@@ -3,12 +3,14 @@ import convertVideo from './convertVideo.js';
 import generateFFmpegArguments from './generateFFmpegArguments.js';
 import QueryParameterError from './QueryParameterError.js';
 import normalizeParameters from './normalizeParameters.js';
+import fetchHeaders from './fetchHeaders.js'
 
 export default async (request: Request, response: Response): Promise<void> => {
   let ffmpegArguments: string[] = [];
   let fileType: string = '';
+  let normalizedParameters;
   try {
-    const normalizedParameters = normalizeParameters(request.query);
+    normalizedParameters = normalizeParameters(request.query);
     const generatedArguments = generateFFmpegArguments(normalizedParameters);
     ffmpegArguments = generatedArguments.ffmpegArguments;
     fileType = generatedArguments.fileType;
@@ -35,7 +37,16 @@ export default async (request: Request, response: Response): Promise<void> => {
   };
 
   try {
-    const { cancel, stream } = await convertVideo({ ffmpegArguments, errorCallback });
+    const videoConversionPromise = await convertVideo({ ffmpegArguments, errorCallback });
+    const headerPromise = normalizedParameters.source
+      ? fetchHeaders(normalizedParameters.source)
+      : Promise.resolve(new Headers());
+
+    const [
+      { cancel, stream },
+      originalHeaders
+    ] = await Promise.all([videoConversionPromise, headerPromise]);
+    
     const mimeTypes: { [key: string]: string } = {
       mp4: 'video/mp4',
       jpg: 'image/jpeg',
@@ -43,6 +54,8 @@ export default async (request: Request, response: Response): Promise<void> => {
     // Use default text/plain because it's best to send an error
     const mimeType = mimeTypes[fileType] || 'text/plain';
     response.setHeader('Content-Type', mimeType);
+    const originalCacheHeader = originalHeaders.get('cache-control');
+    if (originalCacheHeader) response.setHeader('Cache-Control', originalCacheHeader);
     response.on('close', () => cancel());
     stream.pipe(response);
   } catch (error) {

@@ -1,12 +1,14 @@
 # Overview
 
-Converts a video from an online source in **real time** to a video or image of a desired output format.
+Converts a video from an online source in **real time** to a video or image of a desired output
+format.
 
 # Features
 - Support for JPG, AV1, H.264 as output formats
 - Supports resizing (width or height)
 - Supports trimming (from and/or to)
-- Provides caching (once a video has been converted, it is loaded much faster as it is delivered directly from cache) 
+- Provides caching (once a video has been converted, it is loaded much faster as it is delivered
+    directly from cache) 
 
 # API
 
@@ -16,8 +18,8 @@ Converts a video from an online source in **real time** to a video or image of a
 
 1. Simply convert to H.264:    
     `/convert?source=https://fxstr.com/out/test.mp4`
-2. Convert to AV1, width 720px, trim from 1s to 3s:
-    `/convert?source=https://fxstr.com/out/test.mp4&format=av1&size=720/&trim=00:00:01.000/00:00:03.000`
+2. Convert to AV1, width 720px, trim from 1s to 3s at 20 frames per second:
+    `/convert?source=https://fxstr.com/out/test.mp4&format=av1&size=720/&trim=00:00:01.000/00:00:03.000&fps=20`
 3. Extract a 1080px high JPEG at 1.5 seconds:
     `/convert?source=https://fxstr.com/out/test.mp4&format=jpg&size=/1080&trim=00:00:01.500/`
 
@@ -53,45 +55,62 @@ dimensions.
 Examples:
 - `size=720/` for a width of 720px.
 - `size=/480` for a height of 480px.
-- `size=320/720` for a portrait video with a width of 320px and a height of 720px.
+- `size=320/720` for a portrait video with a width of 320px and a height of 720px; video might be
+    cropped if the original video's aspect ratio differs from the desired one.
 
 #### Trim
 
-Optional. Trims the video. Times must be provided in the format `hh:mm:ss.sss` (where `sss` are milliseconds).
+Optional. Trims the video. Times must be provided in the format `hh:mm:ss.sss` (where `sss` are
+milliseconds).
 
 Format: `{from?)/{to?}`, `from`and `to` in the exact format `hh:mm:ss.sss`.
 
 Examples: 
-- `trim=00:00:01.500` to cut of the first 1.5 seconds.
+- `trim=00:00:01.500` to cut off the first 1.5 seconds.
 - `trim=/00:00:04.200` to discard everything after 4.2 seconds.
 - `trim=00:00:01.200/00:01:00.000` keep the segment between 1.2s and 60s.
 
 #### FPS
 
 Optional. Sets the output framerate. When not set, uses the original video's framerate. If provided,
-must be a number.
+must be a positivenumber.
 
 Examples: 
 - `fps=25`
 - `fps=29.97`
 
-#### Quality (TBD, not yet implemented)
+#### Quality
 
-Optional. Sets the output quality. If provided, must be a number between 1 and 100. 100 is the
-best imaage/video quality, but the biggest file size. To ffmpeg's default values.
+Optional. Sets the output quality. If provided, must be a number between 0 and 100. 100 is the
+best image/video quality (and produces the largest files).
 
-Examples: 
-- `quality=90`
+Defaults (according to Ffmpeg):
+- h264: `55`
+- av1: `44`
+- jpg: `80`
+
+Examples:
+- `quality=90` (for high quality and large file size output)
+
+#### Keyframes
+
+Optional. Defines the interval for keyframes (a value of `50` means that every 50th frame is a
+keyframe/I-frame). If not set, uses the original video's keyframe interval. If provided,
+must be a positive integer.
+
+Examples:
+- `keyframe=50`
 
 
 ## Upcoming Features
 - [ ] Audio support (currently, all audio is being removed)
 - [ ] Faster encoding (depending on the hardware the app is running on)
-- [ ] Faster encoding for longer videos (as we split up a longer video into chunks and distribute the encoding of single chunks across multiple servers)
-- [ ] Support for more codecs
-- [ ] Use and propagate the cache headers from the original video
+- [ ] Faster encoding for longer videos (as we split up a longer video into chunks and distribute
+    the encoding of single chunks across multiple servers)
+- [x] Support for more codecs
+- [x] Use and propagate the `Cache-Control` headers from the original video
 - [x] Support for cropping
-- [ ] Support for different quality encoding
+- [x] Support for different quality encoding
 - [ ] And, maybe, adaptive streaming.
 
 <link rel="stylesheet" href="/styles/style.css">

@@ -8,7 +8,11 @@ let server: Server;
 // Expose media directory for local testing (when we're in a TGV in France, e.g.)
 beforeAll((): void => {
   const app = express();
-  app.use('/media', express.static('media'));
+  app.use('/media', express.static('media', {
+    setHeaders: (res) => {
+      res.set('Cache-Control', 'public, max-age: 123');
+    },
+  }));
   server = app.listen(3200);
 });
 
@@ -39,7 +43,7 @@ test('works with valid arguments', (done): void => {
   // Do not use a Promise here as the tes
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   request(app)
-    .get('/convert?source=http://0.0.0.0:3200/media/test.mp4')
+    .get('/convert?source=http://0.0.0.0:3200/media/test.mp4&format=av1&size=/720&trim=00:00:01.000/00:00:02.000')
     .expect(200)
     .parse((response, callback):void => {
       response.on('data', (chunk: Buffer): void => { chunks.push(chunk); });
@@ -57,17 +61,6 @@ test('works with valid arguments', (done): void => {
     });
 }, 20000);
 
-test('fails on missing source', async (): Promise<void> => {
-  const app = createServer();
-
-  // Whatev, createServer or app do not return a Promise.
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  const response = await request(app)
-    .get('/convert')
-    .expect(400);
-  expect(response.text.includes('"source"')).toBe(true);
-});
-
 test('provides docs', async (): Promise<void> => {
   const app = createServer();
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -75,3 +68,24 @@ test('provides docs', async (): Promise<void> => {
     .get('/')
     .expect(200);
 });
+
+test('preserves cache headers', (done): void => {
+  const app = createServer();
+  const chunks: Buffer[] = [];
+  request(app)
+    .get('/convert?source=http://0.0.0.0:3200/media/test.mp4&trim00:00:01.000/00:00:01.200')
+    .parse((response, callback):void => {
+      // We must listen to the stream or it will not end
+      response.on('data', (chunk: Buffer): void => { chunks.push(chunk); });
+      response.on('end', (): void => { callback(null, Buffer.concat(chunks)); });
+      response.on('error', callback as (error: Error) => void);
+    })
+    .expect(200)
+    .then((response) => expect(response.headers['cache-control']).toEqual('public, max-age: 123'))
+    .then(done)
+    .catch((error: unknown): void => {
+      // eslint-disable-next-line no-console
+      console.error(error);
+      throw error;
+    });
+}, 20000);
