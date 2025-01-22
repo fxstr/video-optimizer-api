@@ -63,7 +63,7 @@ Examples:
 Optional. Trims the video. Times must be provided in the format `hh:mm:ss.sss` (where `sss` are
 milliseconds).
 
-Format: `{from?)/{to?}`, `from`and `to` in the exact format `hh:mm:ss.sss`.
+Format: `{from?)/{to?}`, `from` and `to` in the exact format `hh:mm:ss.sss`.
 
 Examples: 
 - `trim=00:00:01.500` to cut off the first 1.5 seconds.

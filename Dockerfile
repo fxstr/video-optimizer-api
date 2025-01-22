@@ -15,6 +15,9 @@ RUN apk add ffmpeg
 COPY package.json package-lock.json ./
 RUN npm i
 
+# We'll start the server from dist, therefore we need to create the corresponding files.
+RUN npx tsc
+
 COPY . .
 
 CMD ["node", "dist/index.js"]
