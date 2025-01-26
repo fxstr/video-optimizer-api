@@ -9,7 +9,8 @@ Run locally: `npm start`
 
 Docker:
 - `docker build -t video-optimizer .`
-- `docker run -p 1234:3000 video-optimizer` to expose it on `localhost:1234`
+- `docker run -p 1234:3000 video-optimizer` to expose it on `localhost:1234`; add `-d` to run it
+    in the background.
 
 # Deploy it
 

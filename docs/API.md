@@ -31,7 +31,12 @@ Call the base URL plus `/convert`, then add your parameters.
 #### Source
 Mandatory. Provide a URL starting with `http://` or `https://` that points to a video file.
 
-Example: `source=https://fxstr.com/out/test.mp4`
+Make sure to URL-encode the entire URL, e.g. by using `encodeURIComponent()` in JavaScript. Why?
+If your URL contains a `&` sign, the characters following it will be interpreted by the video
+optimizer, which might cause it to fail. A URL-encoded `&` will become `%26` and is safe to use.
+
+Example: `source=https://fxstr.com/out/test.mp4` or URL-encoded:
+`source=https%3A%2F%2Ffxstr.com%2Fout%2Ftest.mp4`
 
 #### Format
 
@@ -73,7 +78,7 @@ Examples:
 #### FPS
 
 Optional. Sets the output framerate. When not set, uses the original video's framerate. If provided,
-must be a positivenumber.
+must be a positive number.
 
 Examples: 
 - `fps=25`
