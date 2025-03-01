@@ -117,7 +117,7 @@ export default (query: ParsedQs): NormalizedParameters => {
     normalizedParameters.keyframeInterval = normalizedKeyframe;
   }
 
-  console.log('Normalized parameters are %o', normalizedParameters);
+  // console.log('Normalized parameters are %o', normalizedParameters);
 
   return normalizedParameters;
 };

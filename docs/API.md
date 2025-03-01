@@ -5,7 +5,7 @@ format.
 
 # Features
 - Support for JPG, AV1, H.264 as output formats
-- Supports resizing (width or height)
+- Supports resizing (width, height or both)
 - Supports trimming (from and/or to)
 - Provides caching (once a video has been converted, it is loaded much faster as it is delivered
     directly from cache) 
@@ -52,10 +52,11 @@ Example: `format=av1`
 Optional. Resizes the video and crops it, if necessary.
 
 Format: `{width?}/{height?}` where height or width or both can be provided. `width` and `height`
-must be **even** integers (due to limitations of the underlying library). 
+must be **even** integers (due to limitations of the underlying library).
 
 If you provide both `width` **and** `height`, the video will be cropped around the center to fit the
-dimensions.
+dimensions. If you only provide `width` or `height`, the other dimension will be calculated
+to fit the original video's aspect ratio.
 
 Examples:
 - `size=720/` for a width of 720px.

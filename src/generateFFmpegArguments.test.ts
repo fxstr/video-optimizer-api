@@ -23,6 +23,7 @@ describe('format', (): void => {
         '-preset', 'ultrafast',
         '-f', 'mp4',
         '-movflags', 'frag_keyframe+empty_moov',
+        '-an',
         '-v', 'verbose',
         '-',
       ],
@@ -39,6 +40,7 @@ describe('format', (): void => {
         '-c:v', 'libsvtav1',
         '-f', 'mp4',
         '-movflags', 'frag_keyframe+empty_moov',
+        '-an',
         '-v', 'verbose',
         '-',
       ],
@@ -55,6 +57,7 @@ describe('format', (): void => {
         '-vframes', '1',
         '-f', 'image2',
         '-vcodec', 'mjpeg',
+        '-an',
         '-v', 'verbose',
         '-',
       ],
@@ -140,55 +143,63 @@ describe('handles fps', (): void => {
   });
 });
 
-describe('quality', () => {
-  test('sets quality on h264', () => {
+describe('quality', (): void => {
+  test('sets quality on h264', (): void => {
     const params = { ...generateDefaultParameters(), format: 'h264', quality: 20 };
     const { ffmpegArguments } = generateFFmpegArguments(params);
     const crfIndex = ffmpegArguments.indexOf('-crf');
     // Quality is 20%; on a 51➝0 scale, that is 40.8, rounded 41
     expect(ffmpegArguments.at(crfIndex + 1)).toBe('41');
   });
-  test('does not set quality on h264 if not provided', () => {
+  test('does not set quality on h264 if not provided', (): void => {
     const params = { ...generateDefaultParameters(), format: 'h264' };
     const { ffmpegArguments } = generateFFmpegArguments(params);
     expect(ffmpegArguments.includes('-crf')).toBe(false);
   });
-  test('sets quality on av1', () => {
+  test('sets quality on av1', (): void => {
     const params = { ...generateDefaultParameters(), format: 'av1', quality: 20 };
     const { ffmpegArguments } = generateFFmpegArguments(params);
     const crfIndex = ffmpegArguments.indexOf('-crf');
     // Quality is 20%; on a 63➝0 scale, that is 50.4, rounded 50
     expect(ffmpegArguments.at(crfIndex + 1)).toBe('50');
   });
-  test('does not set quality on av1 if not provided', () => {
+  test('does not set quality on av1 if not provided', (): void => {
     const params = { ...generateDefaultParameters(), format: 'av1' };
     const { ffmpegArguments } = generateFFmpegArguments(params);
     expect(ffmpegArguments.includes('-crf')).toBe(false);
   });
-  test('sets quality on jpg', () => {
+  test('sets quality on jpg', (): void => {
     const params = { ...generateDefaultParameters(), format: 'jpg', quality: 20 };
     const { ffmpegArguments } = generateFFmpegArguments(params);
     const qvIndex = ffmpegArguments.indexOf('-q:v');
     // Quality is 20%; on a 31➝1 scale, that is 24.8, rounded 25
     expect(ffmpegArguments.at(qvIndex + 1)).toBe('25');
   });
-  test('does not set quality on jpg if not provided', () => {
+  test('does not set quality on jpg if not provided', (): void => {
     const params = { ...generateDefaultParameters(), format: 'jpg' };
     const { ffmpegArguments } = generateFFmpegArguments(params);
     expect(ffmpegArguments.includes('-q:v')).toBe(false);
   });
 });
 
-describe('keyframes', () => {
-  test('sets keyframe interval', () => {
+describe('keyframes', (): void => {
+  test('sets keyframe interval', (): void => {
     const params = { ...generateDefaultParameters(), keyframeInterval: 10 };
     const { ffmpegArguments } = generateFFmpegArguments(params);
     const gIndex = ffmpegArguments.indexOf('-g');
     expect(ffmpegArguments.at(gIndex + 1)).toBe('10');
   });
-  test('does not contain keyframes if not set', () => {
+  test('does not contain keyframes if not set', (): void => {
     const params = { ...generateDefaultParameters() };
     const { ffmpegArguments } = generateFFmpegArguments(params);
     expect(ffmpegArguments.includes('-g')).toBe(false);
+  });
+});
+
+describe('audio', (): void => {
+  test('removes audio', (): void => {
+    const params = { ...generateDefaultParameters() };
+    const { ffmpegArguments } = generateFFmpegArguments(params);
+    expect(ffmpegArguments.includes('-an')).toBe(true);
   });
 });

@@ -1,22 +1,27 @@
-# Install it
+# Intro
 
-1. Make sure that `FFmpeg` is installed and can be invoked by calling `ffmpeg` in the terminal. 
-2. Install the NPM modules: `npm i`.
+Basically makes [FFmpeg](https://www.ffmpeg.org/) easily accessible through a URL-based interface
+and transcodes videos from a provided source in real time.
 
-# Run it
+Example URL: `http://localhost:1234/convert?source=https://example.com/video.mov&format=av1&size=720/`.
 
-Run locally: `npm start`
+# Setup
+
+## Run it
+
+Run locally: `npm i`, then `npm start`.
 
 Docker:
 - `docker build -t video-optimizer .`
-- `docker run -p 1234:3000 video-optimizer` to expose it on `localhost:1234`; add `-d` to run it
-    in the background.
+- `docker run -d -p 1234:3000 video-optimizer` to expose it on `localhost:1234`
 
-# Deploy it
+## Deploy it
+
+[Install fly](https://fly.io/docs/flyctl/install/), create an account, login, then:
 
 `flyctl deploy -c fly.toml`
 
-# Test it
+## Test it
 
 `npm test` or `npm run test:watch`
 
@@ -24,25 +29,14 @@ To test a single file: `npm test:watch -- path/to-file.ts`.
 
 To run a single test: `npm test:watch -t "name of the test"`.
 
-## API
-Tendenz: Längere Params, dafür wenigere und Infos via Values 
-Params ohne Alias, wegen Caching
+# API
 
-?source=https://fxstr.com/video.mp4&format=av1&size=1280/720&trim=2.85s/100f
-frameRate: 25
-keyFrames oder pFrames: 10
-trim: start/end, start, /end; s (Seconds, float), f (Frames, int), hh:mm:ss.sss
-quality: …
-format: avif, webp, json (no param = original) …
+See the [API docs](docs/API.md).
 
-?source=https://fxstr.com/out/test.mp4&format=avif&size=1280&focalPoint=1250/70%
-focalPoint: x/y (in px), x (in px), x%, x/y%, /y%, face, highlight, auto, ""
-size (always px): x, x/y, /y, "" (empty = original)
-quality: … vbr/cbr – standardize to % or 0–10?
-
-Separate endpoint for infos: duration, frameRate, format, size …
-
-
-CacheBusting: Same URL = same result. ?nocache=true header? Or ?revalidate=true
-
-Kern: API-Design: Viele Params oder Infos in den Werten, z.B. XxY resp. x/y resp. Frames vs Time?
+- We do not use aliases to facilitate caching.
+- We try to keep parameters easily understandable and easy to use (one parameter with multiple
+values instead of multiple parameters with one value).
+- We do not shorten parameters as their size (a few bytes) is negligible compared to the video's
+size.
+- As parameter names we use property, not function names (e.g. time instead of trim). Why? Because
+URLs are resource locators that return a response for the properties provided.

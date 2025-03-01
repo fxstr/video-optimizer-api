@@ -18,6 +18,9 @@ RUN npm i
 # We'll start the server from dist, therefore we need to create the corresponding files.
 RUN npx tsc
 
+ENV SERVER_HOST=0.0.0.0
+ENV SERVER_PORT=3000
+
 COPY . .
 
 CMD ["node", "dist/index.js"]

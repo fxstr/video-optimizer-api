@@ -1,8 +1,8 @@
 import createServer from './createServer.js';
 
-const port = 3000;
+const port = parseInt(process.env.SERVER_PORT ?? '3000', 10);
 // 0.0.0.0 is required by fly.io
-const host = '0.0.0.0';
+const host = process.env.SERVER_HOST || '0.0.0.0';
 
 const app = createServer();
 

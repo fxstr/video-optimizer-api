@@ -89,12 +89,14 @@ export default (normalizedParameters: NormalizedParameters): ReturnProperties =>
     ffmpegArguments.push('-g', normalizedParameters.keyframeInterval.toString());
   }
 
+  ffmpegArguments.push('-an');
+
   // Make things verbose to simplify debugging (also on live data)
   ffmpegArguments.push('-v', 'verbose');
   // Make sure output is streamed to stdout
   ffmpegArguments.push('-');
 
-  console.log('ffmpegArguments are %o', ffmpegArguments);
+  // console.log('ffmpegArguments are %o', ffmpegArguments);
 
   return {
     ffmpegArguments,
