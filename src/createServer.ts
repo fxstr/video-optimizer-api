@@ -16,16 +16,17 @@ export default (): Application => {
   app.use('/media', express.static('media'));
   app.use('/styles', express.static('styles'));
 
-  // Provide documentation; fail gracefully as docs are not crucial
-  try {
-    app.get('', async (_, response): Promise<void> => {
+  app.get('', async (_, response): Promise<void> => {
+    // Provide documentation; fail gracefully as docs are not crucial
+    try {
       response.setHeader('Content-Type', 'text/html');
       const docs = await provideDocumentation();
       response.send(docs);
-    });
-  } catch (error) {
-    console.error(error);
-  }
+    } catch (error) {
+      console.error(error);
+      response.status(500).send('Documentation could not be loaded.');
+    }
+  });
 
   return app;
 };
