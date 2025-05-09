@@ -60,6 +60,9 @@ export default (normalizedParameters: NormalizedParameters): ReturnProperties =>
       const adjustedQuality = mapQuality([0, 100], [51, 0], normalizedParameters.quality);
       ffmpegArguments.push('-crf', Math.round(adjustedQuality).toString());
     }
+    // +faststart does not do the job here; we get "muxer does not support non seekable output"
+    // and the HTTP request fails. If we use both (frag_keyframe+empty_moov plus +faststart),
+    // faststart is ignored. Therefore, we can leave it out.
     ffmpegArguments.push('-movflags', 'frag_keyframe+empty_moov');
     fileType = 'mp4';
   } else if (format === 'av1') {

@@ -37,6 +37,16 @@ test('fails on missing source', async (): Promise<void> => {
   expect(response.text.includes('"source"')).toBe(true);
 });
 
+test('exposes /vo endpoint', async (): Promise<void> => {
+  const app = createServer();
+  // Whatev, createServer or app do not return a Promise.
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  const response = await request(app)
+    .get('/vo')
+    .expect(400);
+  expect(response.text.includes('"source"')).toBe(true);
+});
+
 test('works with valid arguments', (done): void => {
   const app = createServer();
   const chunks: Buffer[] = [];
