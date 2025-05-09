@@ -52,6 +52,7 @@ test('works with valid arguments', (done): void => {
     })
     .then((response): void => {
       expect(response.headers['content-type']).toBe('video/mp4');
+      expect(response.headers['content-range']).toBe(undefined);
       done();
     })
     .catch((error: unknown): void => {
@@ -81,7 +82,33 @@ test('preserves cache headers', (done): void => {
       response.on('error', callback as (error: Error) => void);
     })
     .expect(200)
-    .then((response) => expect(response.headers['cache-control']).toEqual('public, max-age: 123'))
+    .then((response): void => {
+      expect(response.headers['cache-control']).toEqual('public, max-age: 123');
+    })
+    .then(done)
+    .catch((error: unknown): void => {
+      // eslint-disable-next-line no-console
+      console.error(error);
+      throw error;
+    });
+}, 20000);
+
+test('handles range requests correctly', (done): void => {
+  const app = createServer();
+  const chunks: Buffer[] = [];
+  request(app)
+    .get('/convert?source=http://0.0.0.0:3200/media/test.mp4&trim00:00:01.000/00:00:01.200')
+    .set('Range', 'bytes=0-1')
+    .parse((response, callback):void => {
+      // We must listen to the stream or it will not end
+      response.on('data', (chunk: Buffer): void => { chunks.push(chunk); });
+      response.on('end', (): void => { callback(null, Buffer.concat(chunks)); });
+      response.on('error', callback as (error: Error) => void);
+    })
+    .expect(206)
+    .then((response): void => {
+      expect(response.headers['content-range']).toMatch(/bytes 0-1\/\d+/);
+    })
     .then(done)
     .catch((error: unknown): void => {
       // eslint-disable-next-line no-console

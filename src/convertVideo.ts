@@ -29,6 +29,10 @@ const returnError = ({
  * Before our server can respond with the converted data, it must know the mime type which in case
  * of errors is text, else a video; therefore we have to return the mime type as soon as we
  * know it, which is only when we get the first chunk of data; therefore we return a Promise.
+ *
+ * !!! CAREFUL: The promise is not resolved when the video has been completely converted, but
+ * already when its *first chunk of data* has been so. !!!
+ *
  * As errors can happen heavily asynchronously, we pass a callback to handle them whenever they
  * may happen.
  * Some browsers cancel the first request they made once they get a "Content-Type: video/mp4";
