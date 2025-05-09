@@ -19,7 +19,13 @@ Docker:
 
 [Install fly](https://fly.io/docs/flyctl/install/), create an account, login, then:
 
-`flyctl deploy -c fly.toml`
+### Production
+Create: `fly apps create video-optimizer-production --org video-optimizer`
+Deploy: `flyctl deploy -c fly.production.toml`
+
+### Staging
+Create: `fly apps create video-optimizer-staging --org video-optimizer`
+Deploy: `flyctl deploy -c fly.staging.toml`
 
 ## Test it
 
