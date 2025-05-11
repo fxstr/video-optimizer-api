@@ -15,13 +15,15 @@ RUN apk add ffmpeg
 COPY package.json package-lock.json ./
 RUN npm i
 
+# FIRST copy the files; only then run npx tsc (or we'd overwrite our compiled files when copying
+# after compiling)
+COPY . .
+
 # We'll start the server from dist, therefore we need to create the corresponding files.
 RUN npx tsc
 
 ENV SERVER_HOST=0.0.0.0
 ENV SERVER_PORT=3000
-
-COPY . .
 
 CMD ["node", "dist/index.js"]
 EXPOSE 3000
