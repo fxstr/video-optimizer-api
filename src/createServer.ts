@@ -11,8 +11,8 @@ export default (): Application => {
   app.disable('x-powered-by');
 
   // Convert is deprecated; use vo instead.
-  app.get('/convert', handleVideoConversion);
   app.get('/vo', handleVideoConversion);
+  app.get('/convert', handleVideoConversion);
 
   // Provide a video for local testing
   app.use('/media', express.static('media'));
