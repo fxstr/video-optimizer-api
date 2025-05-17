@@ -5,9 +5,13 @@ and transcodes videos from a provided source in real time.
 
 Example URL: `http://localhost:1234/convert?source=https://example.com/video.mov&format=av1&size=720/`.
 
+Whole setup [on Miro](https://miro.com/app/board/uXjVI3OOPbY=/).
+
 # Setup
 
 ## Run it
+
+`npx dotenv -e .env -- node src/index.js`
 
 Run locally: `npm i`, then `npm start`.
 
@@ -46,3 +50,25 @@ values instead of multiple parameters with one value).
 size.
 - As parameter names we use property, not function names (e.g. time instead of trim). Why? Because
 URLs are resource locators that return a response for the properties provided.
+
+# Local development
+- Use [s3rver](https://github.com/jamhall/s3rver) for S3:
+  ```bash
+  npx s3rver --directory ./s3rver-data --configure-bucket video-optimizer-local
+  ```
+  Then in your .env:
+  ```bash
+  S3_ENDPOINT=http://localhost:4568
+  S3_ACCESS_KEY_ID=S3RVER
+  S3_SECRET_ACCESS_KEY=S3RVER
+  S3_BUCKET_NAME=video-optimizer-local
+  ```
+- Run Redis [locally via Docker:](https://hub.docker.com/_/redis):
+  ```bash
+  docker run -d --name vo-redis -p 6379:6379 redis:7.2
+  ```
+  Then in your .env:
+  ```bash
+  REDIS_HOST=localhost
+  REDIS_PORT=6379
+  ```

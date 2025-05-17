@@ -1,7 +1,7 @@
 import { ParsedQs } from 'qs';
+import { NormalizedParameters, OutputFormats } from 'video-optimizer';
 import QueryParameterError from './QueryParameterError.js';
 import convertTimeToMs from './convertTimeToMs.js';
-import { NormalizedParameters } from './types/NormalizedParameters.js';
 
 interface GetValueProperties {
   value: string | string[] | undefined | ParsedQs | ParsedQs[];
@@ -42,13 +42,15 @@ const createMissingQueryParameterError = (parameter: string): QueryParameterErro
  * Takes an Express queryString, validates and normalizes it.
  */
 export default (query: ParsedQs): NormalizedParameters => {
+  const defaultFormat = 'h264';
+
   const normalizedParameters: NormalizedParameters = {
-    source: null,
+    source: '',
     height: null,
     width: null,
     trimStartMs: null,
     trimEndMs: null,
-    format: null,
+    format: defaultFormat,
     fps: null,
     quality: null,
     keyframeInterval: null,
@@ -86,12 +88,13 @@ export default (query: ParsedQs): NormalizedParameters => {
   }
 
   // Format
-  const validFormats = ['h264', 'av1', 'jpg'];
+  // Default must come first
+  const validFormats = [defaultFormat, 'av1', 'jpg'];
   const format = getValueAsString({ value: query.format, name: 'format' });
   if (format && !validFormats.includes(format)) {
-    throw new QueryParameterError(`GET parameter "format" must be one of ${validFormats.map((format) => `"${format}"`).join(', ')}; is ${format} instead.`);
+    throw new QueryParameterError(`GET parameter "format" must be one of ${validFormats.map((validFormat): string => `"${validFormat}"`).join(', ')}; is ${format} instead.`);
   }
-  if (format) normalizedParameters.format = format;
+  if (format) normalizedParameters.format = format as OutputFormats;
 
   // FPS
   const fps = getValueAsString({ value: query.fps, name: 'fps' });
@@ -100,7 +103,7 @@ export default (query: ParsedQs): NormalizedParameters => {
   // Quality
   const quality = getValueAsString({ value: query.quality, name: 'quality' });
   if (quality) {
-    const normalizedQuality = Math.round(ensureNumber(quality, 'quality')); 
+    const normalizedQuality = Math.round(ensureNumber(quality, 'quality'));
     if (normalizedQuality < 0 || normalizedQuality > 100) {
       throw new QueryParameterError(`GET parameter "quality" must be a number between 0 and 100; is ${quality} instead.`);
     }

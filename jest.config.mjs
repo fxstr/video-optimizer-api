@@ -4,6 +4,7 @@ import { createJsWithTsEsmPreset } from 'ts-jest';
 
 export default {
   ...createJsWithTsEsmPreset(),
+  setupFiles: ['dotenv/config'],
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   testMatch: ['<rootDir>/src/**/*.test.ts'],

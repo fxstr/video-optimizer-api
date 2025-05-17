@@ -1,6 +1,6 @@
+import type { NormalizedParameters } from 'video-optimizer';
 import normalizeParameters from './normalizeParameters.js';
 import QueryParameterError from './QueryParameterError.js';
-import { NormalizedParameters } from './types/NormalizedParameters.js';
 
 const createDefaultParameters = (): { source: string } => ({
   source: 'https://example.com/video.mp4',
@@ -57,6 +57,23 @@ describe('size', (): void => {
     const { height, width } = normalizeParameters({ ...createDefaultParameters(), size: '/4' });
     expect(height).toBe(4);
     expect(width).toBe(null);
+  });
+});
+
+describe('format', (): void => {
+  test('throws on invalid format', (): void => {
+    const params = { ...createDefaultParameters(), format: 'unknown' };
+    expect((): NormalizedParameters => normalizeParameters(params)).toThrow();
+  });
+
+  test('defaults to h264', (): void => {
+    const params = { ...createDefaultParameters(), format: undefined };
+    expect(normalizeParameters(params).format).toBe('h264');
+  });
+
+  test('accepts valid input formats', (): void => {
+    const params = { ...createDefaultParameters(), format: 'jpg' };
+    expect(normalizeParameters(params).format).toBe('jpg');
   });
 });
 
