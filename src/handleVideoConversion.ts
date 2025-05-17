@@ -37,6 +37,12 @@ export default async ({
   console.log('Params are %o', normalizedParameters);
 
   const hash = hashObject(normalizedParameters as HashableObject);
+  const apiKey = request.query['api-key'];
+  if (!apiKey || typeof apiKey !== 'string') {
+    throw new Error('Parameter "api-key" is missing or invalid; use a single GET parameter.');
+  }
+  // Add apiKey to file name in order to delete all files of a user easily (when he leaves)
+  const fileName = `${apiKey}/${hash}`;
   console.log('Hash is %s', hash);
 
   const [s3BucketName] = getAndValidateEnvVars('S3_BUCKET_NAME');
@@ -61,7 +67,6 @@ export default async ({
       expirationDate: getResponseTTL(request.headers['cache-control'] || '').toString(),
     };
     // Continue gracefully if apiKey is missing or invalid
-    const apiKey = request.query['api-key'];
     if (typeof apiKey === 'string') {
       newMetadata.apiKey = apiKey;
     } else {
@@ -73,7 +78,7 @@ export default async ({
       await convertAndStoreVideo({
         response,
         normalizedParameters,
-        fileName: hash,
+        fileName,
         bucketName: s3BucketName,
         s3Client,
         metadata: newMetadata,
@@ -85,7 +90,7 @@ export default async ({
 
     try {
       // Get adjusted file size (after upload)
-      const head = await getHead({ s3Client, bucketName: s3BucketName, fileName: hash });
+      const head = await getHead({ s3Client, bucketName: s3BucketName, fileName });
       fileSize = head.size;
       if (head.metadata) metadata = head.metadata;
       // File size is 0 or undefined (does not exist): That's not a valid option here, throw
@@ -110,7 +115,7 @@ export default async ({
   await streamFromS3({
     range,
     response,
-    fileName: hash,
+    fileName,
     fileSize,
     bucketName: s3BucketName,
     s3Client,
