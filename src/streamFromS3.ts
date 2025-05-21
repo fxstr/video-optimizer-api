@@ -25,7 +25,7 @@ export default async ({
   const responseHeaders: OutgoingHttpHeaders = {
     'Content-Type': contentType,
     // TODO: Set to correct TTL; use 30 days for now
-    'Cache-Control': 'public, max-age: 2592000',
+    'Cache-Control': 'public, max-age=2592000',
   };
   if (rangeStart !== undefined && rangeEnd !== undefined) {
     responseHeaders['Content-Range'] = `bytes ${rangeStart.toString()}-${rangeEnd.toString()}/${fileSize.toString()}`;
