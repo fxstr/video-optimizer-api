@@ -51,7 +51,7 @@ export default async ({
   let fileSize: number | undefined;
   let metadata: Record<string, string> = {};
   try {
-    const head = await getHead({ s3Client, bucketName: s3BucketName, fileName: hash });
+    const head = await getHead({ s3Client, bucketName: s3BucketName, fileName });
     fileSize = head.size;
     if (head.metadata) metadata = head.metadata;
   } catch (error) {
